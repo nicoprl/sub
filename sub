@@ -1,0 +1,79 @@
+#!/usr/bin/python3
+
+"""
+prod : http://api.thesubdb.com
+dev : http://sandbox.thesubdb.com
+
+test hash = edc1981d6459c6111fe36205b4aff6c2
+
+http://sandbox.thesubdb.com/?action=search&hash=51db62cb6771850ebe9a1cf0abd9bdd1
+
+"""
+
+import os
+import sys
+import hashlib
+import urllib.request
+
+def main():
+    if len(sys.argv) < 2:
+        print('Missing [filename] arg')
+        print('Ex: sub justified.mp4')
+        sys.exit(1)
+
+    if sys.argv[1] == '-h' or sys.argv[1] == '--help':
+        print('Open shell in video directory')
+        print('sub [video_file_name]')
+        sys.exit(0)
+
+    movie_name = sys.argv[1]
+    movie_name_ext = os.path.splitext(movie_name)[1]
+    movie_path = os.getcwd() + "/" + movie_name
+    movie_hash = get_hash(movie_path)
+
+    headers = {"User-Agent": "SubDB/1.0 (nicoprl-subdbCLI/1.0; http://github.com/nicoprl)"}
+    url = 'http://api.thesubdb.com?action=search&hash=' + movie_hash
+    r = urllib.request.Request(url, headers=headers)
+    try:
+        with urllib.request.urlopen(r) as rep:
+            available_languages = rep.read().decode('utf-8').split(',')
+            if 'en' in available_languages:
+                print('English subtitle found for hash', movie_hash)
+                sub_name = movie_name.replace(movie_name_ext,'.srt')
+                sub_path = os.getcwd() + "/" + sub_name
+                url = 'http://api.thesubdb.com?action=download&language=en&hash=' + movie_hash
+                r = urllib.request.Request(url, headers=headers)
+                with urllib.request.urlopen(r) as rep:
+                    with open(sub_path, 'wb') as subfile:
+                        subfile.write(rep.read())
+                        print(sub_name, 'written to', sub_path)
+            else:
+                print('English subtitle NOT found for hash', movie_hash)
+                print('Available language(s):', available_languages)
+    except urllib.error.HTTPError as e:
+        print('HTTPError :', e)
+        sys.exit(1)
+    except Exception as e:
+        print('Exception:', e)
+        sys.exit(1)
+
+def get_hash(name):
+    readsize = 64 * 1024
+    try:
+        with open(name, 'rb') as f:
+            size = os.path.getsize(name)
+            data = f.read(readsize)
+            f.seek(-readsize, os.SEEK_END)
+            data += f.read(readsize)
+    except FileNotFoundError as e:
+        print(e)
+        sys.exit(1)
+    else:
+        return hashlib.md5(data).hexdigest()
+
+if __name__ == '__main__':
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("KeyboardInterrupt")
+        sys.exit(1)
