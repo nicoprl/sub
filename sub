@@ -17,38 +17,41 @@ import urllib.request
 
 def main():
     if len(sys.argv) < 2:
-        print('Missing [filename] arg')
-        print('Ex: sub justified.mp4')
-        sys.exit(1)
-
-    if sys.argv[1] == '-h' or sys.argv[1] == '--help':
+        # download sub for every video file in folder
+        for f in os.listdir(os.getcwd()):
+            if os.path.splitext(f)[1].lower in ['.mp4', '.mkv', '.avi']:
+                movieHash = get_hash(f)
+                get_sub(movieHash, f, os.path.splitext(f)[1])
+    elif sys.argv[1] == '-f':
+        # download sub for specific file
+        movieHash = get_hash(sys.argv[2])
+        get_sub(movieHash, sys.argv[2], os.path.splitext(f)[1])
+    elif sys.argv[1] == '-h' or sys.argv[1] == '--help':
+        # print usages
         print('Open shell in video directory')
-        print('sub [video_file_name]')
+        print('sub : download sub for every video file in folder')
+        print('sub -f [movie_file_name]: download sub for movie_file_name only')
         sys.exit(0)
 
-    movie_name = sys.argv[1]
-    movie_name_ext = os.path.splitext(movie_name)[1]
-    movie_path = os.getcwd() + "/" + movie_name
-    movie_hash = get_hash(movie_path)
-
+def get_sub(movieHash, movieName, movieNameExt):
     headers = {"User-Agent": "SubDB/1.0 (nicoprl-subdbCLI/1.0; http://github.com/nicoprl)"}
-    url = 'http://api.thesubdb.com?action=search&hash=' + movie_hash
+    url = 'http://api.thesubdb.com?action=search&hash=' + movieHash
     r = urllib.request.Request(url, headers=headers)
     try:
         with urllib.request.urlopen(r) as rep:
             available_languages = rep.read().decode('utf-8').split(',')
             if 'en' in available_languages:
-                print('English subtitle found for hash', movie_hash)
-                sub_name = movie_name.replace(movie_name_ext,'.srt')
+                print('English subtitle found for hash', movieHash)
+                sub_name = movieName.replace(movieNameExt,'.srt')
                 sub_path = os.getcwd() + "/" + sub_name
-                url = 'http://api.thesubdb.com?action=download&language=en&hash=' + movie_hash
+                url = 'http://api.thesubdb.com?action=download&language=en&hash=' + movieHash
                 r = urllib.request.Request(url, headers=headers)
                 with urllib.request.urlopen(r) as rep:
                     with open(sub_path, 'wb') as subfile:
                         subfile.write(rep.read())
                         print(sub_name, 'written to', sub_path)
             else:
-                print('English subtitle NOT found for hash', movie_hash)
+                print('English subtitle NOT found for hash', movieHash)
                 print('Available language(s):', available_languages)
     except urllib.error.HTTPError as e:
         print('HTTPError :', e)
@@ -66,6 +69,9 @@ def get_hash(name):
             f.seek(-readsize, os.SEEK_END)
             data += f.read(readsize)
     except FileNotFoundError as e:
+        print(e)
+        sys.exit(1)
+    except Exception as e:
         print(e)
         sys.exit(1)
     else:
