@@ -17,10 +17,10 @@ Add the `sub` directory to your PATH
 
 - open shell in video directory  
 - `sub` : download sub for every video file in current folder  
-- `sub -f` [movie_file_name]: download sub for movie_file_name only
+- `sub -f [movie_file_name]`: download sub for movie_file_name only
 
 ## Exemple
 
-`$ sub mindhunter.s01e09.720p.webrip.x264-strife\[ettv\].mkv`  
+`$ sub -f mindhunter.s01e09.720p.webrip.x264-strife\[ettv\].mkv`  
 => file "mindhunter.s01e09.720p.webrip.x264-strife[ettv].srt" is created in current dir
 
