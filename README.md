@@ -16,8 +16,8 @@ Add the `sub` directory to your PATH
 ## Usage
 
 - open shell in video directory  
-- `sub [video_file_name]`
-- if found, a subtitle file is downloaded in the current directory.
+- `sub` : download sub for every video file in current folder  
+- `sub -f` [movie_file_name]: download sub for movie_file_name only
 
 ## Exemple
 
