@@ -19,13 +19,13 @@ def main():
     if len(sys.argv) < 2:
         # download sub for every video file in folder
         for f in os.listdir(os.getcwd()):
-            if os.path.splitext(f)[1].lower in ['.mp4', '.mkv', '.avi']:
+            if os.path.splitext(f)[1].lower() in ['.mp4', '.mkv', '.avi']:
                 movieHash = get_hash(f)
                 get_sub(movieHash, f, os.path.splitext(f)[1])
     elif sys.argv[1] == '-f':
         # download sub for specific file
         movieHash = get_hash(sys.argv[2])
-        get_sub(movieHash, sys.argv[2], os.path.splitext(f)[1])
+        get_sub(movieHash, sys.argv[2], os.path.splitext(sys.argv[2])[1])
     elif sys.argv[1] == '-h' or sys.argv[1] == '--help':
         # print usages
         print('Open shell in video directory')
@@ -41,7 +41,7 @@ def get_sub(movieHash, movieName, movieNameExt):
         with urllib.request.urlopen(r) as rep:
             available_languages = rep.read().decode('utf-8').split(',')
             if 'en' in available_languages:
-                print('English subtitle found for hash', movieHash)
+                print(movieName, 'english subtitle found for hash', movieHash)
                 sub_name = movieName.replace(movieNameExt,'.srt')
                 sub_path = os.getcwd() + "/" + sub_name
                 url = 'http://api.thesubdb.com?action=download&language=en&hash=' + movieHash
@@ -51,14 +51,12 @@ def get_sub(movieHash, movieName, movieNameExt):
                         subfile.write(rep.read())
                         print(sub_name, 'written to', sub_path)
             else:
-                print('English subtitle NOT found for hash', movieHash)
-                print('Available language(s):', available_languages)
+                print(movieName, 'english subtitle NOT found for hash', movieHash)
+                print(movieName, 'available language(s):', available_languages)
     except urllib.error.HTTPError as e:
-        print('HTTPError :', e)
-        sys.exit(1)
+        print(movieName, 'HTTPError:', e)
     except Exception as e:
-        print('Exception:', e)
-        sys.exit(1)
+        print(movieName, 'exception:', e)
 
 def get_hash(name):
     readsize = 64 * 1024
@@ -69,11 +67,10 @@ def get_hash(name):
             f.seek(-readsize, os.SEEK_END)
             data += f.read(readsize)
     except FileNotFoundError as e:
-        print(e)
+        print(name, e)
         sys.exit(1)
     except Exception as e:
-        print(e)
-        sys.exit(1)
+        print(name, e)
     else:
         return hashlib.md5(data).hexdigest()
 
